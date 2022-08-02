@@ -48,11 +48,10 @@ class Node:
 				if self.right.operation.getOffset() & (1 << (self.right.operation.getSize() * 8 - 1)) != 0:
 					raise ValueError("Negative constaints not supported yet")
 				offset += self.right.operation.getOffset()
+			elif self.right.isConstant():
+				raise Exception("Shouldn't happen")
 			else:
-				if not self.right.isConstant():
-					print("Non constant indexed detected: Possible array?")
-				else:
-					raise Exception("Shouldn't happen")
+				print("Non constant indexed detected: Possible array?")
 			return (sub_struct, offset, grand)
 		elif self.operation == "*()":
 			assert isinstance(self.left, Node)
@@ -76,20 +75,19 @@ class Node:
 		if self.is_leaf():
 			return str(self.operation)
 		elif self.operation == "*()":
-			return "*({})".format(str(self.left))
+			return f"*({str(self.left)})"
 		elif self.operation == "RESIZE":
-			return "(uint{}_t)({})".format(self.byte_length * 8, str(self.left))
+			return f"(uint{self.byte_length * 8}_t)({str(self.left)})"
 		elif self.operation == "~":
-			return "~({})".format(str(self.left))
+			return f"~({str(self.left)})"
 		else:
-			return str(self.left) + " " + self.operation + " " + str(self.right)
+			return f"{str(self.left)} {self.operation} {str(self.right)}"
 
 	def __repr__(self):
 		return '"' + self.__str__() + '"'
 
 	def __hash__(self):
-		ret = hash(str(self))
-		return ret
+		return hash(str(self))
 
 	def relevant(self):
 		good = self.operation in ("+", "*()", "RESIZE", "*") or (self.is_leaf() and str(self.operation).startswith("ARG")) or (isinstance(self.operation, Varnode) and self.operation.isConstant()) or self.is_varnode_constant()
@@ -116,8 +114,7 @@ class Node:
 
 	def find_base_idx(self, old_params):
 		if self in old_params:
-			idx = old_params.index(self)
-			return idx
+			return old_params.index(self)
 		res = None
 		if isinstance(self.left, Node) and res is None:
 			res = self.left.find_base_idx(old_params)
@@ -170,8 +167,7 @@ class Node:
 		return s
 
 	def shallow_copy(self):
-		ret = Node(self.operation, self.left, self.right, self.byte_length)
-		return ret
+		return Node(self.operation, self.left, self.right, self.byte_length)
 
 	def deep_copy(self):
 		left = self.left

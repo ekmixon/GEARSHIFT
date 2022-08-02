@@ -120,9 +120,7 @@ class PCodeInterpreter:
 			if len(inputs) >= 2:
 				print("RETURN")
 				print(self.lookup_node(inputs[1]))
-		elif opcode == PcodeOp.CBRANCH:
-			pass
-		else:
+		elif opcode != PcodeOp.CBRANCH:
 			print("Unsupported Opcode:", instruction.getMnemonic(), inputs[0].getPCAddress())
 
 		self.instruction = saved_instruction
